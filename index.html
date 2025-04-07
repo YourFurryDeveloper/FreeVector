@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>SVG Tests</title>
+    </head>
+
+    <style>
+        html {
+            font-family: sans-serif;
+            position: fixed;
+            background-color: rgb(53, 53, 53);
+        }
+
+        h1, h4, p {
+            text-align: center;
+        }
+
+        #topbar {
+            background-color: rgb(42, 42, 42);
+            border-color: rgb(32, 32, 32);
+            border: 1px solid;
+            border-radius: 10px;
+            height: 50px;
+            display: flex;
+            position: absolute;
+            left: 10px;
+            right: 10px;
+        }
+
+        #strokewidth, #strokesegwidth {
+            border-radius: 5px;
+            width: 50px;
+            height: 16px;
+        }
+
+        #linecolor, #strokewidth, #stroketype, #strokesegwidth {
+            margin-left: 10px;
+            border-radius: 5px;
+            margin-top: auto;
+            margin-bottom: auto;
+            border-width: 1px;
+            background-color: rgb(53, 53, 53);
+            color: white;
+            border-color: rgb(186, 186, 186);
+        }
+
+        #linecolor {
+            height: 35px;
+        }
+
+        #strokewidth, #strokesegwidth {
+            height: 29px;
+        }
+
+        #stroketype {
+            height: 35px;
+        }
+
+        #savebutton, #infobutton {
+            margin-left: 50px;
+        }
+
+        #loadbutton {
+            margin-left: 10px;
+        }
+
+        #savebutton, #loadbutton, #infobutton {
+            height: 35px;
+            border-radius: 5px;
+            border-width: 1px;
+            margin-top: auto;
+            margin-bottom: auto;
+            background-color: rgb(53, 53, 53);
+        }
+
+        #infoClose {
+            height: 35px;
+            border-radius: 5px;
+            border-width: 1px;
+            margin-bottom: auto;
+            margin-left: auto;
+            margin-right: auto;
+            position: absolute;
+            left: 30px;
+            right: 30px;
+            color: whitesmoke;
+            background-color: rgb(97, 97, 97);
+        }
+
+        #svgarea {
+            border-radius: 10px;
+            border: 1px solid;
+            border-color: black;
+            margin-top: 60px;
+            cursor: crosshair;
+            background-color: white;
+            left: 10px;
+            right: 10px;
+        }
+
+        #infoBox {
+            display: none;
+            border-radius: 15px;
+            background-color: rgb(90, 90, 90);
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 200px;
+            margin-bottom: auto;
+            position: fixed;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 400px;
+            height: 250px;
+            color: whitesmoke;
+            border: 1px solid;
+            border-color: rgb(32, 32, 32);
+        }
+    </style>
+
+    <body>
+        <div id="topbar">
+            <input type="color" id="linecolor" title="Stroke color"></input>
+            <input type="number" id="strokewidth" value="2" title="Stroke width"></input>
+            <select id="stroketype" title="Stroke type">
+                <option value="0,0">______</option>
+                <option value="5,5">- - - -</option>
+                <option value="square">◼️</option>
+            </select>
+            <input type="number" id="strokesegwidth" value="10" title="Stroke segment width"></input>
+            <button id="savebutton" style="color: white; font-size: 18px;" class="zoom-in" onclick="zoom(1.1)">+</button>
+            <button id="loadbutton" style="color: white; font-size: 18px;" class="zoom-out" onclick="zoom(0.9)">-</button>
+            <button id="savebutton" onclick="downloadImage()" title="Save file">💾</button>
+            <button id="loadbutton" onclick="loadImage()" title="Load file">📂</button>
+            <button id="infobutton" onclick="showInfo()" title="App info">ℹ️</button>
+            <input type="file" id="fileInput" accept=".svg" style="display: none;">
+        </div>
+
+        <div id="infoBox">
+            <h1>FreeVector</h1>
+            <h4 style="color: rgb(219, 219, 219);">Made by YourFurryDeveloper on GitHub :3</h4>
+            <p>© YourFurryDeveloper 2025</p>
+            <br>
+            <br>
+            <button id="infoClose" onclick="closeInfo()">Close</button>
+        </div>
+
+        <svg id="svgarea" xmlns="http://www.w3.org/2000/svg" width="99vw" height="87vh" onmousedown="setMouseDown(event)" onmouseup="setMouseUp()" onmousemove="trackMousePosition(event)">
+        </svg>
+        
+        <script>
+            let mouseDown = false;
+
+            let oldMouseX = 0;
+            let oldMouseY = 0;
+
+            let mouseX = 0;
+            let mouseY = 0;
+
+            let viewBoxX = 0;
+            let viewBoxY = 0;
+            let viewBoxWidth = 500;
+            let viewBoxHeight = 500;
+            
+            function updateViewBox() {
+                const svg = document.getElementById("svgarea");
+                svg.setAttribute("viewBox", `${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}`);
+            }
+
+            // Zoom function that adjusts the viewBox
+            function zoom(factor) {
+                const zoomCenterX = (viewBoxX + viewBoxWidth / 2);
+                const zoomCenterY = (viewBoxY + viewBoxHeight / 2);
+
+                // Adjust the viewBox dimensions based on the zoom factor
+                viewBoxWidth *= factor;
+                viewBoxHeight *= factor;
+
+                // Maintain zoom at the center
+                viewBoxX = zoomCenterX - viewBoxWidth / 2;
+                viewBoxY = zoomCenterY - viewBoxHeight / 2;
+
+                // Update the viewBox attribute on the SVG element
+                updateViewBox();
+            }
+
+            //const svgContainer = document.querySelector('.svg-container');
+            //svgContainer.addEventListener('wheel', (event) => {
+                //event.preventDefault();
+                //const zoomFactor = event.deltaY < 0 ? 1.1 : 0.9; // Zoom in or out
+                //zoom(zoomFactor);
+            //});
+
+            function showInfo() {
+                var infoBox = document.getElementById("infoBox");
+                infoBox.style.display = "unset";
+            }
+
+            function closeInfo() {
+                var infoBox = document.getElementById("infoBox");
+                infoBox.style.display = "none";
+            }
+
+            function downloadImage() {
+                var svgElement = document.getElementById('svgarea');
+                var svgString = new XMLSerializer().serializeToString(svgElement);
+                var blob = new Blob([svgString], { type: 'image/svg+xml' });
+                var link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'untitled.svg';
+                link.click();
+            }
+
+            function loadImage() {
+                var customButton = document.getElementById('customButton');
+                var fileInput = document.getElementById('fileInput');
+
+                fileInput.click();
+
+                fileInput.addEventListener('change', function(event) {
+                    var file = event.target.files[0];
+
+                    if (file && file.type === 'image/svg+xml') {
+                    var reader = new FileReader();
+
+                    reader.onload = function(e) {
+                        var svgContent = e.target.result;
+                        var svgContainer = document.getElementById('svgarea');
+                        svgContainer.innerHTML = '';
+                        svgContainer.innerHTML = svgContent;
+                    };
+
+                    // Read the file as text (SVG is text-based)
+                    reader.readAsText(file);
+                    } else {
+                    alert("Please select a valid SVG file.");
+                    }
+                });
+            }
+
+            function setMouseDown() {
+                mouseDown = true;
+                oldMouseX = event.pageX - 10;
+                oldMouseY = event.pageY - 70;
+                runWhileMouseDown();
+            }
+
+            function setMouseUp() {
+                mouseDown = false;
+            }
+
+            function trackMousePosition(event) {
+                mouseX = event.pageX - 10;
+                mouseY = event.pageY - 70;
+                //console.log(`Mouse Position: X = ${mouseX}, Y = ${mouseY}`);
+            }
+
+            function runWhileMouseDown() {
+                if (mouseDown) {
+                    let parentElement = document.getElementById("svgarea");
+                    let svgNamespace = "http://www.w3.org/2000/svg";
+
+                    const strokeColor = document.getElementById("linecolor").value;
+                    const strokeWidth = document.getElementById("strokewidth").value;
+                    const strokeDash = document.getElementById("stroketype").value;
+                    const strokeSegWidth = document.getElementById("strokesegwidth").value;
+
+                    if (strokeDash === "0,0" || strokeDash === "5,5") {
+                        let newLine = document.createElementNS(svgNamespace, 'line');
+                        newLine.setAttribute("x1", oldMouseX);
+                        newLine.setAttribute("y1", oldMouseY);
+                        newLine.setAttribute("x2", mouseX);
+                        newLine.setAttribute("y2", mouseY);
+                        newLine.setAttribute("stroke", strokeColor);
+                        newLine.setAttribute("stroke-width", strokeWidth);
+                        newLine.setAttribute("stroke-dasharray", strokeDash);
+                        oldMouseX = mouseX;
+                        oldMouseY = mouseY;
+                        parentElement.append(newLine);
+                        setTimeout(runWhileMouseDown, strokeSegWidth);
+                    } else if (strokeDash === "square") {
+                        let newLine = document.createElementNS(svgNamespace, 'rect');
+                        newLine.setAttribute("x", oldMouseX);
+                        newLine.setAttribute("y", oldMouseY);
+                        newLine.setAttribute("width", mouseX);
+                        newLine.setAttribute("height", mouseY);
+                        newLine.setAttribute("stroke", strokeColor);
+                        newLine.setAttribute("stroke-width", strokeWidth);
+                        newLine.setAttribute("stroke-dasharray", strokeDash);
+                        oldMouseX = mouseX;
+                        oldMouseY = mouseY;
+                        parentElement.append(newLine);
+                        setTimeout(runWhileMouseDown, 10);
+                    }
+                }
+            }
+        </script>
+    </body>
+</html>
